@@ -50,7 +50,7 @@
         <span class="tooltiptext">
           Введите фамилию и имя в первом столбце (до 15 символов).<br>
           В столбцах с датами вводите только число дня (1-31).<br>
-          Месяц указан в отдельной верхней строке.<br>
+          Месяц указывается в одной ячейке сверху таблицы.<br>
           Галочки отмечают посещения практики.<br>
           Итог рассчитывается автоматически по правилам ниже.
         </span>
@@ -58,15 +58,8 @@
       <table id="journal">
         <thead>
           <tr class="month-row">
-            <th></th>
-            <th><input type="text" class="month-input" placeholder="Месяц" /></th>
-            <th><input type="text" class="month-input" placeholder="Месяц" /></th>
-            <th><input type="text" class="month-input" placeholder="Месяц" /></th>
-            <th><input type="text" class="month-input" placeholder="Месяц" /></th>
-            <th><input type="text" class="month-input" placeholder="Месяц" /></th>
-            <th><input type="text" class="month-input" placeholder="Месяц" /></th>
-            <th><input type="text" class="month-input" placeholder="Месяц" /></th>
-            <th><input type="text" class="month-input" placeholder="Месяц" /></th>
+            <th>Месяц:</th>
+            <th colspan="8"><input type="text" class="month-input" placeholder="Введите месяц" /></th>
             <th></th>
           </tr>
           <tr>
@@ -135,4 +128,5 @@
   </script>
 </body>
 </html>
+
 
