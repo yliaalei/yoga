@@ -26,12 +26,11 @@
     .footer{margin-top:12px;display:flex;justify-content:space-between;align-items:center}
     .actions{display:flex;gap:8px}
     @media (max-width:880px){.name-input{width:120px}table{font-size:12px}th,td{padding:6px}}
-    td input[type=checkbox]{width:18px;height:18px;margin:0 auto;display:block}
-    td:nth-child(n+2):nth-child(-n+9){width:24px; padding:4px}
+    td input[type=checkbox]{width:24px;height:24px;margin:0 auto;display:block}
+    td.day-cell input[type=number]{width:30px;text-align:center; border-radius:6px; border:1px solid #dbe7e6;}
     .tooltip {position: relative; display: inline-block; cursor: help;}
-    .tooltip .tooltiptext {visibility: hidden; width:200px; background-color:#111; color:#fff; text-align:left; padding:6px; border-radius:6px; position: absolute; z-index:1; bottom:125%; left:50%; margin-left:-100px; opacity:0; transition:opacity 0.3s; font-size:12px;}
+    .tooltip .tooltiptext {visibility: hidden; width:220px; background-color:#111; color:#fff; text-align:left; padding:6px; border-radius:6px; position: absolute; z-index:1; bottom:125%; left:50%; margin-left:-110px; opacity:0; transition:opacity 0.3s; font-size:12px;}
     .tooltip:hover .tooltiptext {visibility: visible; opacity:1;}
-    input.day-input {width:100%; box-sizing:border-box; text-align:center; padding:4px; border-radius:6px; border:1px solid #dbe7e6}
   </style>
 </head>
 <body>
@@ -51,22 +50,35 @@
         <span class="tooltiptext">
           Введите фамилию и имя в первом столбце (до 15 символов).<br>
           В столбцах с датами вводите только число дня (1-31).<br>
+          Месяц указан в отдельной верхней строке.<br>
           Галочки отмечают посещения практики.<br>
           Итог рассчитывается автоматически по правилам ниже.
         </span>
       </div>
       <table id="journal">
         <thead>
+          <tr class="month-row">
+            <th></th>
+            <th><input type="text" class="month-input" placeholder="Месяц" /></th>
+            <th><input type="text" class="month-input" placeholder="Месяц" /></th>
+            <th><input type="text" class="month-input" placeholder="Месяц" /></th>
+            <th><input type="text" class="month-input" placeholder="Месяц" /></th>
+            <th><input type="text" class="month-input" placeholder="Месяц" /></th>
+            <th><input type="text" class="month-input" placeholder="Месяц" /></th>
+            <th><input type="text" class="month-input" placeholder="Месяц" /></th>
+            <th><input type="text" class="month-input" placeholder="Месяц" /></th>
+            <th></th>
+          </tr>
           <tr>
             <th>ФИ</th>
-            <th><input type="number" class="day-input" min="1" max="31" data-col="1" /></th>
-            <th><input type="number" class="day-input" min="1" max="31" data-col="2" /></th>
-            <th><input type="number" class="day-input" min="1" max="31" data-col="3" /></th>
-            <th><input type="number" class="day-input" min="1" max="31" data-col="4" /></th>
-            <th><input type="number" class="day-input" min="1" max="31" data-col="5" /></th>
-            <th><input type="number" class="day-input" min="1" max="31" data-col="6" /></th>
-            <th><input type="number" class="day-input" min="1" max="31" data-col="7" /></th>
-            <th><input type="number" class="day-input" min="1" max="31" data-col="8" /></th>
+            <th class="day-cell"><input type="number" min="1" max="31" /></th>
+            <th class="day-cell"><input type="number" min="1" max="31" /></th>
+            <th class="day-cell"><input type="number" min="1" max="31" /></th>
+            <th class="day-cell"><input type="number" min="1" max="31" /></th>
+            <th class="day-cell"><input type="number" min="1" max="31" /></th>
+            <th class="day-cell"><input type="number" min="1" max="31" /></th>
+            <th class="day-cell"><input type="number" min="1" max="31" /></th>
+            <th class="day-cell"><input type="number" min="1" max="31" /></th>
             <th>Итог</th>
           </tr>
         </thead>
@@ -89,176 +101,38 @@
     </div>
   </div>
 
-  <input type="file" id="fileInput" style="display:none" accept="application/json" />
-
   <script>
-    const ROWS = 15;
-    const COLS = 10;
-    const DATA_KEY = 'yoga-journal-v1';
-    const tbody = document.querySelector('#journal tbody');
+    const ROWS=15;
+    const tbody=document.querySelector('#journal tbody');
 
     function createTableRows(){
-      tbody.innerHTML = '';
+      tbody.innerHTML='';
       for(let r=2;r<=ROWS;r++){
-        const tr = document.createElement('tr');
-        const tdName = document.createElement('td');
-        const nameInput = document.createElement('input');
-        nameInput.type = 'text';
-        nameInput.className = 'name-input';
-        nameInput.placeholder = (r-1)+'. Фамилия Имя';
-        nameInput.dataset.row = r;
+        const tr=document.createElement('tr');
+        const tdName=document.createElement('td');
+        const nameInput=document.createElement('input');
+        nameInput.type='text';
+        nameInput.className='name-input';
+        nameInput.placeholder=(r-1)+'. Фамилия Имя';
         tdName.appendChild(nameInput);
         tr.appendChild(tdName);
-
         for(let c=2;c<=9;c++){
-          const td = document.createElement('td');
-          const chk = document.createElement('input');
-          chk.type = 'checkbox';
-          chk.dataset.row = r;
-          chk.dataset.col = c;
+          const td=document.createElement('td');
+          td.className='day-cell';
+          const chk=document.createElement('input');
+          chk.type='checkbox';
           td.appendChild(chk);
           tr.appendChild(td);
         }
-
-        const tdResult = document.createElement('td');
-        tdResult.className = 'result';
-        tdResult.dataset.row = r;
-        tdResult.textContent = '';
+        const tdResult=document.createElement('td');
+        tdResult.className='result';
         tr.appendChild(tdResult);
-
         tbody.appendChild(tr);
       }
     }
 
-    function countChecksForRow(row){
-      const checkboxes = document.querySelectorAll(`input[type=checkbox][data-row='${row}']`);
-      let cnt=0;
-      checkboxes.forEach(cb=>{ if(cb.checked) cnt++; });
-      return cnt;
-    }
-
-    function computeLabel(count){
-      if(count>=6 && count<=8) return 'мастер баланса';
-      if(count===4) return 'йога путешественник';
-      if(count===2 || count===3) return 'мастер гибкий график';
-      return '';
-    }
-
-    function updateAllResults(){
-      for(let r=2;r<=ROWS;r++){
-        const cnt = countChecksForRow(r);
-        const label = computeLabel(cnt);
-        const tdResult = document.querySelector(`td.result[data-row='${r}']`);
-        tdResult.textContent = label;
-      }
-    }
-
-    function collectData(){
-      const headers = Array.from(document.querySelectorAll('.day-input')).map(inp=>inp.value || '');
-      const rows = [];
-      for(let r=2;r<=ROWS;r++){
-        const name = document.querySelector(`input.name-input[data-row='${r}']`).value || '';
-        const checks = [];
-        for(let c=2;c<=9;c++){
-          const cb = document.querySelector(`input[type=checkbox][data-row='${r}'][data-col='${c}']`);
-          checks.push(cb.checked);
-        }
-        const cnt = checks.filter(Boolean).length;
-        rows.push({name, checks, label: computeLabel(cnt)});
-      }
-      return {headers, rows, savedAt: new Date().toISOString()};
-    }
-
-    function saveToLocal(){
-      const data = collectData();
-      localStorage.setItem(DATA_KEY, JSON.stringify(data));
-      flashMessage('Сохранено');
-    }
-
-    function loadFromLocal(){
-      const raw = localStorage.getItem(DATA_KEY);
-      if(!raw) return false;
-      try{
-        const data = JSON.parse(raw);
-        document.querySelectorAll('.day-input').forEach((inp,i)=>{ inp.value = data.headers[i] || ''; });
-        data.rows.forEach((rowObj, idx)=>{
-          const r = 2+idx;
-          const nameInput = document.querySelector(`input.name-input[data-row='${r}']`);
-          if(nameInput) nameInput.value = rowObj.name || '';
-          for(let c=2;c<=9;c++){
-            const cb = document.querySelector(`input[type=checkbox][data-row='${r}'][data-col='${c}']`);
-            if(cb) cb.checked = !!rowObj.checks[c-2];
-          }
-        });
-        updateAllResults();
-        return true;
-      }catch(e){console.error(e);return false}
-    }
-
-    function clearAll(confirmNeeded=true){
-      if(confirmNeeded && !confirm('Сбросить таблицу? Данные в localStorage будут удалены.')) return;
-      document.querySelectorAll('.day-input').forEach(inp=>inp.value='');
-      document.querySelectorAll('input.name-input').forEach(inp=>inp.value='');
-      document.querySelectorAll('input[type=checkbox]').forEach(cb=>cb.checked=false);
-      updateAllResults();
-      localStorage.removeItem(DATA_KEY);
-      flashMessage('Сброшено');
-    }
-
-    function flashMessage(text){
-      const el = document.createElement('div');
-      el.textContent = text;
-      Object.assign(el.style,{position:'fixed',right:'20px',bottom:'20px',background:'#111',color:'#fff',padding:'8px 12px',borderRadius:'8px',opacity:'0',transition:'all 200ms'});
-      document.body.appendChild(el);
-      requestAnimationFrame(()=>el.style.opacity='1');
-      setTimeout(()=>{ el.style.opacity='0'; setTimeout(()=>el.remove(),300); },1000);
-    }
-
-    function exportJSON(){
-      const data = collectData();
-      const blob = new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url; a.download = 'yoga-journal.json';
-      document.body.appendChild(a); a.click(); a.remove();
-      URL.revokeObjectURL(url);
-    }
-
-    function importJSON(file){
-      const reader = new FileReader();
-      reader.onload = ()=>{
-        try{
-          const data = JSON.parse(reader.result);
-          if(!data.rows || !Array.isArray(data.rows)) throw new Error('Неверный формат');
-          localStorage.setItem(DATA_KEY, JSON.stringify(data));
-          loadFromLocal();
-          flashMessage('Импортировано');
-        }catch(e){alert('Ошибка при импорте: '+e.message);}
-      };
-      reader.readAsText(file);
-    }
-
-    function attachEvents(){
-      document.addEventListener('input',(e)=>{
-        if(e.target.matches('.day-input')||e.target.matches('.name-input')){
-          updateAllResults(); saveToLocal();
-        }
-      });
-      document.addEventListener('change',(e)=>{
-        if(e.target.matches('input[type=checkbox]')){ updateAllResults(); saveToLocal(); }
-      });
-      document.getElementById('saveBtn').addEventListener('click',saveToLocal);
-      document.getElementById('clearBtn').addEventListener('click',()=>clearAll(true));
-      document.getElementById('exportBtn').addEventListener('click',exportJSON);
-      document.getElementById('importBtn').addEventListener('click',()=>document.getElementById('fileInput').click());
-      document.getElementById('fileInput').addEventListener('change',(ev)=>{
-        const f = ev.target.files[0]; if(f) importJSON(f); ev.target.value='';
-      });
-    }
-
     createTableRows();
-    attachEvents();
-    if(!loadFromLocal()) updateAllResults();
   </script>
 </body>
 </html>
+
