@@ -14,20 +14,22 @@
     button{background:var(--accent);color:white;border:0;padding:8px 12px;border-radius:8px;cursor:pointer}
     button.ghost{background:#fff;border:1px solid #e6edf0;color:#334155}
     .card{background:var(--card);padding:14px;border-radius:12px;box-shadow:0 6px 18px rgba(12,16,20,0.06)}
-    table{width:100%;border-collapse:collapse;font-size:14px}
-    th,td{border:1px solid #e6eef2;padding:8px;text-align:center;vertical-align:middle}
+    table{width:auto;border-collapse:collapse;font-size:14px}
+    th,td{border:1px solid #e6eef2;padding:6px;text-align:center;vertical-align:middle}
     th:first-child,td:first-child{text-align:left;padding-left:12px;width:200px; min-width:180px}
     thead th{background:#eef6f6}
     input[type="text"]{width:100%;box-sizing:border-box;padding:6px;border-radius:6px;border:1px solid #dbe7e6}
     input[type="date"]{width:100%;box-sizing:border-box;padding:6px;border-radius:6px;border:1px solid #dbe7e6}
     .name-input{width:100%; max-width:200px}
     .small{font-size:12px;color:var(--muted)}
-    .result{font-weight:600}
+    .result{font-weight:600; min-width:120px}
     .legend{margin-top:10px;font-size:13px;color:var(--muted)}
     .footer{margin-top:12px;display:flex;justify-content:space-between;align-items:center}
     .actions{display:flex;gap:8px}
     @media (max-width:880px){.name-input{width:120px}table{font-size:12px}th,td{padding:6px}}
+    /* галочки точно по ширине */
     td input[type=checkbox]{width:18px;height:18px;margin:0 auto;display:block}
+    td:nth-child(n+2):nth-child(-n+9){width:24px; padding:4px}
     .tooltip {position: relative; display: inline-block; cursor: help;}
     .tooltip .tooltiptext {visibility: hidden; width:200px; background-color:#111; color:#fff; text-align:left; padding:6px; border-radius:6px; position: absolute; z-index:1; bottom:125%; left:50%; margin-left:-100px; opacity:0; transition:opacity 0.3s; font-size:12px;}
     .tooltip:hover .tooltiptext {visibility: visible; opacity:1;}
@@ -205,66 +207,4 @@
 
     function flashMessage(text){
       const el = document.createElement('div');
-      el.textContent = text;
-      Object.assign(el.style,{position:'fixed',right:'20px',bottom:'20px',background:'#111',color:'#fff',padding:'8px 12px',borderRadius:'8px',opacity:'0',transition:'all 200ms'});
-      document.body.appendChild(el);
-      requestAnimationFrame(()=>el.style.opacity='1');
-      setTimeout(()=>{ el.style.opacity='0'; setTimeout(()=>el.remove(),300); },1000);
-    }
-
-    function exportJSON(){
-      const data = collectData();
-      const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url; a.download = 'yoga-journal.json';
-      document.body.appendChild(a); a.click(); a.remove();
-      URL.revokeObjectURL(url);
-    }
-
-    function importJSON(file){
-      const reader = new FileReader();
-      reader.onload = ()=>{
-        try{
-          const data = JSON.parse(reader.result);
-          if(!data.rows || !Array.isArray(data.rows)) throw new Error('Неверный формат');
-          localStorage.setItem(DATA_KEY, JSON.stringify(data));
-          loadFromLocal();
-          flashMessage('Импортировано');
-        }catch(e){ alert('Ошибка при импорте: '+e.message); }
-      };
-      reader.readAsText(file);
-    }
-
-    function attachEvents(){
-      document.addEventListener('input', (e)=>{
-        if(e.target.matches('.date-header') || e.target.matches('.name-input')){
-          updateAllResults();
-          saveToLocal();
-        }
-      });
-      document.addEventListener('change', (e)=>{
-        if(e.target.matches('input[type=checkbox]')){
-          updateAllResults();
-          saveToLocal();
-        }
-      });
-      document.getElementById('saveBtn').addEventListener('click', saveToLocal);
-      document.getElementById('clearBtn').addEventListener('click', ()=>clearAll(true));
-      document.getElementById('exportBtn').addEventListener('click', exportJSON);
-      document.getElementById('importBtn').addEventListener('click', ()=>document.getElementById('fileInput').click());
-      document.getElementById('fileInput').addEventListener('change', (ev)=>{
-        const f = ev.target.files[0];
-        if(f) importJSON(f);
-        ev.target.value = '';
-      });
-    }
-
-    createTableRows();
-    attachEvents();
-    if(!loadFromLocal()){
-      updateAllResults();
-    }
-  </script>
-</body>
-</html>
+      el.textContent =
