@@ -1,104 +1,270 @@
 <!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Журнал посещений — Йога</title>
+  <style>
+    :root{--bg:#f7fafc;--card:#ffffff;--muted:#6b7280;--accent:#0ea5a4}
+    body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial; background:var(--bg); margin:0;padding:24px;color:#111}
+    .wrap{max-width:1100px;margin:0 auto}
+    header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+    h1{font-size:20px;margin:0}
+    .controls{display:flex;gap:8px;flex-wrap:wrap}
+    button{background:var(--accent);color:white;border:0;padding:8px 12px;border-radius:8px;cursor:pointer}
+    button.ghost{background:#fff;border:1px solid #e6edf0;color:#334155}
+    .card{background:var(--card);padding:14px;border-radius:12px;box-shadow:0 6px 18px rgba(12,16,20,0.06)}
+    table{width:100%;border-collapse:collapse;font-size:14px}
+    th,td{border:1px solid #e6eef2;padding:8px;text-align:center;vertical-align:middle}
+    th:first-child,td:first-child{text-align:left;padding-left:12px;width:200px; min-width:180px}
+    thead th{background:#eef6f6}
+    input[type="text"]{width:100%;box-sizing:border-box;padding:6px;border-radius:6px;border:1px solid #dbe7e6}
+    input[type="date"]{width:100%;box-sizing:border-box;padding:6px;border-radius:6px;border:1px solid #dbe7e6}
+    .name-input{width:100%; max-width:200px}
+    .small{font-size:12px;color:var(--muted)}
+    .result{font-weight:600}
+    .legend{margin-top:10px;font-size:13px;color:var(--muted)}
+    .footer{margin-top:12px;display:flex;justify-content:space-between;align-items:center}
+    .actions{display:flex;gap:8px}
+    @media (max-width:880px){.name-input{width:120px}table{font-size:12px}th,td{padding:6px}}
+    td input[type=checkbox]{width:18px;height:18px;margin:0 auto;display:block}
+    .tooltip {position: relative; display: inline-block; cursor: help;}
+    .tooltip .tooltiptext {visibility: hidden; width:200px; background-color:#111; color:#fff; text-align:left; padding:6px; border-radius:6px; position: absolute; z-index:1; bottom:125%; left:50%; margin-left:-100px; opacity:0; transition:opacity 0.3s; font-size:12px;}
+    .tooltip:hover .tooltiptext {visibility: visible; opacity:1;}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>Журнал посещений — Йога (таблица)</h1>
+      <div class="controls">
+        <button id="saveBtn">Сохранить</button>
+        <button class="ghost" id="clearBtn">Сбросить</button>
+        <button class="ghost" id="exportBtn">Экспорт JSON</button>
+        <button class="ghost" id="importBtn">Импорт JSON</button>
+      </div>
+    </header>
 
+    <div class="card">
+      <div class="tooltip">ℹ️
+        <span class="tooltiptext">
+          Введите фамилию и имя в первом столбце (до 15 символов).<br>
+          Отметьте посещения галочками в столбцах с датами.<br>
+          Итог рассчитывается автоматически по правилам ниже.
+        </span>
+      </div>
+      <table id="journal">
+        <thead>
+          <tr>
+            <th>ФИ</th>
+            <th><input type="date" class="date-header" data-col="1" /></th>
+            <th><input type="date" class="date-header" data-col="2" /></th>
+            <th><input type="date" class="date-header" data-col="3" /></th>
+            <th><input type="date" class="date-header" data-col="4" /></th>
+            <th><input type="date" class="date-header" data-col="5" /></th>
+            <th><input type="date" class="date-header" data-col="6" /></th>
+            <th><input type="date" class="date-header" data-col="7" /></th>
+            <th><input type="date" class="date-header" data-col="8" /></th>
+            <th>Итог</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
 
-function loadFromLocal(){
-const raw = localStorage.getItem(DATA_KEY);
-if(!raw) return false;
-try{
-const data = JSON.parse(raw);
-document.querySelectorAll('.date-header').forEach((inp,i)=>{ inp.value = data.headers[i] || ''; });
-data.rows.forEach((rowObj, idx)=>{
-const r = 2+idx;
-const nameInput = document.querySelector(`input.name-input[data-row='${r}']`);
-if(nameInput) nameInput.value = rowObj.name || '';
-for(let c=2;c<=9;c++){
-const cb = document.querySelector(`input[type=checkbox][data-row='${r}'][data-col='${c}']`);
-if(cb) cb.checked = !!rowObj.checks[c-2];
-}
-});
-updateAllResults();
-return true;
-}catch(e){console.error(e);return false}
-}
+      <div class="legend">
+        Правила итогов (столбец "Итог"):
+        <ul>
+          <li>мастер баланса — 6, 7 или 8 посещений (галочек среди 8 дат).</li>
+          <li>йога путешественник — ровно 4 посещения.</li>
+          <li>мастер гибкий график — ровно 2 или 3 посещения.</li>
+        </ul>
+      </div>
 
+      <div class="footer">
+        <div class="small">Автосохранение при изменении. Данные хранятся в localStorage (браузер).</div>
+        <div class="actions small">Готово — загрузите этот файл в GitHub как <code>index.html</code>.</div>
+      </div>
+    </div>
+  </div>
 
-function clearAll(confirmNeeded=true){
-if(confirmNeeded && !confirm('Сбросить таблицу? Данные в localStorage будут удалены.')) return;
-document.querySelectorAll('.date-header').forEach(inp=>inp.value='');
-document.querySelectorAll('input.name-input').forEach(inp=>inp.value='');
-document.querySelectorAll('input[type=checkbox]').forEach(cb=>cb.checked=false);
-updateAllResults();
-localStorage.removeItem(DATA_KEY);
-flashMessage('Сброшено');
-}
+  <input type="file" id="fileInput" style="display:none" accept="application/json" />
 
+  <script>
+    const ROWS = 15;
+    const COLS = 10;
+    const DATA_KEY = 'yoga-journal-v1';
+    const tbody = document.querySelector('#journal tbody');
 
-function flashMessage(text){
-const el = document.createElement('div');
-el.textContent = text;
-Object.assign(el.style,{position:'fixed',right:'20px',bottom:'20px',background:'#111',color:'#fff',padding:'8px 12px',borderRadius:'8px',opacity:'0',transition:'all 200ms'});
-document.body.appendChild(el);
-requestAnimationFrame(()=>el.style.opacity='1');
-setTimeout(()=>{ el.style.opacity='0'; setTimeout(()=>el.remove(),300); },1000);
-}
+    function createTableRows(){
+      tbody.innerHTML = '';
+      for(let r=2;r<=ROWS;r++){
+        const tr = document.createElement('tr');
+        const tdName = document.createElement('td');
+        const nameInput = document.createElement('input');
+        nameInput.type = 'text';
+        nameInput.className = 'name-input';
+        nameInput.placeholder = (r-1)+'. Фамилия Имя';
+        nameInput.dataset.row = r;
+        tdName.appendChild(nameInput);
+        tr.appendChild(tdName);
 
+        for(let c=2;c<=9;c++){
+          const td = document.createElement('td');
+          const chk = document.createElement('input');
+          chk.type = 'checkbox';
+          chk.dataset.row = r;
+          chk.dataset.col = c;
+          td.appendChild(chk);
+          tr.appendChild(td);
+        }
 
-function exportJSON(){
-const data = collectData();
-const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
-const url = URL.createObjectURL(blob);
-const a = document.createElement('a');
-a.href = url; a.download = 'yoga-journal.json';
-document.body.appendChild(a); a.click(); a.remove();
-URL.revokeObjectURL(url);
-}
+        const tdResult = document.createElement('td');
+        tdResult.className = 'result';
+        tdResult.dataset.row = r;
+        tdResult.textContent = '';
+        tr.appendChild(tdResult);
 
+        tbody.appendChild(tr);
+      }
+    }
 
-function importJSON(file){
-const reader = new FileReader();
-reader.onload = ()=>{
-try{
-const data = JSON.parse(reader.result);
-if(!data.rows || !Array.isArray(data.rows)) throw new Error('Неверный формат');
-localStorage.setItem(DATA_KEY, JSON.stringify(data));
-loadFromLocal();
-flashMessage('Импортировано');
-}catch(e){ alert('Ошибка при импорте: '+e.message); }
-};
-reader.readAsText(file);
-}
+    function countChecksForRow(row){
+      const checkboxes = document.querySelectorAll(`input[type=checkbox][data-row='${row}']`);
+      let cnt=0;
+      checkboxes.forEach(cb=>{ if(cb.checked) cnt++; });
+      return cnt;
+    }
 
+    function computeLabel(count){
+      if(count>=6 && count<=8) return 'мастер баланса';
+      if(count===4) return 'йога путешественник';
+      if(count===2 || count===3) return 'мастер гибкий график';
+      return '';
+    }
 
-function attachEvents(){
-document.addEventListener('input', (e)=>{
-if(e.target.matches('.date-header') || e.target.matches('.name-input')){
-updateAllResults();
-saveToLocal();
-}
-});
-document.addEventListener('change', (e)=>{
-if(e.target.matches('input[type=checkbox]')){
-updateAllResults();
-saveToLocal();
-}
-});
-document.getElementById('saveBtn').addEventListener('click', saveToLocal);
-document.getElementById('clearBtn').addEventListener('click', ()=>clearAll(true));
-document.getElementById('exportBtn').addEventListener('click', exportJSON);
-document.getElementById('importBtn').addEventListener('click', ()=>document.getElementById('fileInput').click());
-document.getElementById('fileInput').addEventListener('change', (ev)=>{
-const f = ev.target.files[0];
-if(f) importJSON(f);
-ev.target.value = '';
-});
-}
+    function updateAllResults(){
+      for(let r=2;r<=ROWS;r++){
+        const cnt = countChecksForRow(r);
+        const label = computeLabel(cnt);
+        const tdResult = document.querySelector(`td.result[data-row='${r}']`);
+        tdResult.textContent = label;
+      }
+    }
 
+    function collectData(){
+      const headers = Array.from(document.querySelectorAll('.date-header')).map(inp=>inp.value || '');
+      const rows = [];
+      for(let r=2;r<=ROWS;r++){
+        const name = document.querySelector(`input.name-input[data-row='${r}']`).value || '';
+        const checks = [];
+        for(let c=2;c<=9;c++){
+          const cb = document.querySelector(`input[type=checkbox][data-row='${r}'][data-col='${c}']`);
+          checks.push(cb.checked);
+        }
+        const cnt = checks.filter(Boolean).length;
+        rows.push({name, checks, label: computeLabel(cnt)});
+      }
+      return {headers, rows, savedAt: new Date().toISOString()};
+    }
 
-createTableRows();
-attachEvents();
-if(!loadFromLocal()){
-updateAllResults();
-}
-</script>
+    function saveToLocal(){
+      const data = collectData();
+      localStorage.setItem(DATA_KEY, JSON.stringify(data));
+      flashMessage('Сохранено');
+    }
+
+    function loadFromLocal(){
+      const raw = localStorage.getItem(DATA_KEY);
+      if(!raw) return false;
+      try{
+        const data = JSON.parse(raw);
+        document.querySelectorAll('.date-header').forEach((inp,i)=>{ inp.value = data.headers[i] || ''; });
+        data.rows.forEach((rowObj, idx)=>{
+          const r = 2+idx;
+          const nameInput = document.querySelector(`input.name-input[data-row='${r}']`);
+          if(nameInput) nameInput.value = rowObj.name || '';
+          for(let c=2;c<=9;c++){
+            const cb = document.querySelector(`input[type=checkbox][data-row='${r}'][data-col='${c}']`);
+            if(cb) cb.checked = !!rowObj.checks[c-2];
+          }
+        });
+        updateAllResults();
+        return true;
+      }catch(e){console.error(e);return false}
+    }
+
+    function clearAll(confirmNeeded=true){
+      if(confirmNeeded && !confirm('Сбросить таблицу? Данные в localStorage будут удалены.')) return;
+      document.querySelectorAll('.date-header').forEach(inp=>inp.value='');
+      document.querySelectorAll('input.name-input').forEach(inp=>inp.value='');
+      document.querySelectorAll('input[type=checkbox]').forEach(cb=>cb.checked=false);
+      updateAllResults();
+      localStorage.removeItem(DATA_KEY);
+      flashMessage('Сброшено');
+    }
+
+    function flashMessage(text){
+      const el = document.createElement('div');
+      el.textContent = text;
+      Object.assign(el.style,{position:'fixed',right:'20px',bottom:'20px',background:'#111',color:'#fff',padding:'8px 12px',borderRadius:'8px',opacity:'0',transition:'all 200ms'});
+      document.body.appendChild(el);
+      requestAnimationFrame(()=>el.style.opacity='1');
+      setTimeout(()=>{ el.style.opacity='0'; setTimeout(()=>el.remove(),300); },1000);
+    }
+
+    function exportJSON(){
+      const data = collectData();
+      const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'yoga-journal.json';
+      document.body.appendChild(a); a.click(); a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    function importJSON(file){
+      const reader = new FileReader();
+      reader.onload = ()=>{
+        try{
+          const data = JSON.parse(reader.result);
+          if(!data.rows || !Array.isArray(data.rows)) throw new Error('Неверный формат');
+          localStorage.setItem(DATA_KEY, JSON.stringify(data));
+          loadFromLocal();
+          flashMessage('Импортировано');
+        }catch(e){ alert('Ошибка при импорте: '+e.message); }
+      };
+      reader.readAsText(file);
+    }
+
+    function attachEvents(){
+      document.addEventListener('input', (e)=>{
+        if(e.target.matches('.date-header') || e.target.matches('.name-input')){
+          updateAllResults();
+          saveToLocal();
+        }
+      });
+      document.addEventListener('change', (e)=>{
+        if(e.target.matches('input[type=checkbox]')){
+          updateAllResults();
+          saveToLocal();
+        }
+      });
+      document.getElementById('saveBtn').addEventListener('click', saveToLocal);
+      document.getElementById('clearBtn').addEventListener('click', ()=>clearAll(true));
+      document.getElementById('exportBtn').addEventListener('click', exportJSON);
+      document.getElementById('importBtn').addEventListener('click', ()=>document.getElementById('fileInput').click());
+      document.getElementById('fileInput').addEventListener('change', (ev)=>{
+        const f = ev.target.files[0];
+        if(f) importJSON(f);
+        ev.target.value = '';
+      });
+    }
+
+    createTableRows();
+    attachEvents();
+    if(!loadFromLocal()){
+      updateAllResults();
+    }
+  </script>
 </body>
 </html>
