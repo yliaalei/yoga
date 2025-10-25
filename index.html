@@ -16,16 +16,19 @@
     .card{background:var(--card);padding:14px;border-radius:12px;box-shadow:0 6px 18px rgba(12,16,20,0.06)}
     table{width:100%;border-collapse:collapse;font-size:14px}
     th,td{border:1px solid #e6eef2;padding:8px;text-align:center;vertical-align:middle}
-    th:first-child,td:first-child{text-align:left;padding-left:12px}
+    th:first-child,td:first-child{text-align:left;padding-left:12px;width:180px}
     thead th{background:#eef6f6}
-    input[type="text"], input[type="date"]{width:100%;box-sizing:border-box;padding:6px;border-radius:6px;border:1px solid #dbe7e6}
-    .name-input{width:200px}
+    input[type="text"]{width:100%;box-sizing:border-box;padding:6px;border-radius:6px;border:1px solid #dbe7e6}
+    input[type="date"]{width:100%;box-sizing:border-box;padding:6px;border-radius:6px;border:1px solid #dbe7e6}
+    .name-input{width:100%; max-width:180px}
     .small{font-size:12px;color:var(--muted)}
     .result{font-weight:600}
     .legend{margin-top:10px;font-size:13px;color:var(--muted)}
     .footer{margin-top:12px;display:flex;justify-content:space-between;align-items:center}
     .actions{display:flex;gap:8px}
     @media (max-width:880px){.name-input{width:120px}table{font-size:12px}th,td{padding:6px}}
+    /* галочки остаются компактными */
+    td input[type=checkbox]{width:auto;height:auto}
   </style>
 </head>
 <body>
@@ -45,7 +48,6 @@
         <thead>
           <tr>
             <th>ФИ</th>
-            <!-- 2..9 даты -->
             <th><input type="date" class="date-header" data-col="1" /></th>
             <th><input type="date" class="date-header" data-col="2" /></th>
             <th><input type="date" class="date-header" data-col="3" /></th>
@@ -57,9 +59,7 @@
             <th>Итог</th>
           </tr>
         </thead>
-        <tbody>
-          <!-- 14 строк для участников (строки 2..15 включительно header=1) -->
-        </tbody>
+        <tbody></tbody>
       </table>
 
       <div class="legend">
@@ -81,19 +81,15 @@
   <input type="file" id="fileInput" style="display:none" accept="application/json" />
 
   <script>
-    // Конфигурация
-    const ROWS = 15; // включая заголовок
-    const COLS = 10; // 1 ФИ + 8 дат + 1 итог
+    const ROWS = 15;
+    const COLS = 10;
     const DATA_KEY = 'yoga-journal-v1';
-
     const tbody = document.querySelector('#journal tbody');
 
     function createTableRows(){
       tbody.innerHTML = '';
-      // строки 2..15 (14 строк участников) — но user asked 2-15 rows are for input => total 15 rows including header => so 14 participant rows
       for(let r=2;r<=ROWS;r++){
         const tr = document.createElement('tr');
-        // first cell: name input
         const tdName = document.createElement('td');
         const nameInput = document.createElement('input');
         nameInput.type = 'text';
@@ -103,7 +99,6 @@
         tdName.appendChild(nameInput);
         tr.appendChild(tdName);
 
-        // columns 2..9: checkboxes
         for(let c=2;c<=9;c++){
           const td = document.createElement('td');
           const chk = document.createElement('input');
@@ -114,7 +109,6 @@
           tr.appendChild(td);
         }
 
-        // итог
         const tdResult = document.createElement('td');
         tdResult.className = 'result';
         tdResult.dataset.row = r;
@@ -126,7 +120,6 @@
     }
 
     function countChecksForRow(row){
-      // count checked in columns 2..9 for given row number
       const checkboxes = document.querySelectorAll(`input[type=checkbox][data-row='${row}']`);
       let cnt=0;
       checkboxes.forEach(cb=>{ if(cb.checked) cnt++; });
@@ -149,7 +142,6 @@
       }
     }
 
-    // Сохранение / загрузка
     function collectData(){
       const headers = Array.from(document.querySelectorAll('.date-header')).map(inp=>inp.value || '');
       const rows = [];
@@ -177,9 +169,7 @@
       if(!raw) return false;
       try{
         const data = JSON.parse(raw);
-        // headers
         document.querySelectorAll('.date-header').forEach((inp,i)=>{ inp.value = data.headers[i] || ''; });
-        // rows
         data.rows.forEach((rowObj, idx)=>{
           const r = 2+idx;
           const nameInput = document.querySelector(`input.name-input[data-row='${r}']`);
@@ -196,7 +186,6 @@
 
     function clearAll(confirmNeeded=true){
       if(confirmNeeded && !confirm('Сбросить таблицу? Данные в localStorage будут удалены.')) return;
-      // clear inputs
       document.querySelectorAll('.date-header').forEach(inp=>inp.value='');
       document.querySelectorAll('input.name-input').forEach(inp=>inp.value='');
       document.querySelectorAll('input[type=checkbox]').forEach(cb=>cb.checked=false);
@@ -205,7 +194,6 @@
       flashMessage('Сброшено');
     }
 
-    // небольшая подсказка при сохранении
     function flashMessage(text){
       const el = document.createElement('div');
       el.textContent = text;
@@ -215,7 +203,6 @@
       setTimeout(()=>{ el.style.opacity='0'; setTimeout(()=>el.remove(),300); },1000);
     }
 
-    // Экспорт/импорт
     function exportJSON(){
       const data = collectData();
       const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
@@ -231,7 +218,6 @@
       reader.onload = ()=>{
         try{
           const data = JSON.parse(reader.result);
-          // basic validation
           if(!data.rows || !Array.isArray(data.rows)) throw new Error('Неверный формат');
           localStorage.setItem(DATA_KEY, JSON.stringify(data));
           loadFromLocal();
@@ -241,30 +227,23 @@
       reader.readAsText(file);
     }
 
-    // Автосохранение при изменениях
     function attachEvents(){
-      // delegate checkbox and name input changes
       document.addEventListener('input', (e)=>{
-        // date headers or name inputs
         if(e.target.matches('.date-header') || e.target.matches('.name-input')){
-          // update results only
           updateAllResults();
           saveToLocal();
         }
       });
-
       document.addEventListener('change', (e)=>{
         if(e.target.matches('input[type=checkbox]')){
           updateAllResults();
           saveToLocal();
         }
       });
-
       document.getElementById('saveBtn').addEventListener('click', saveToLocal);
       document.getElementById('clearBtn').addEventListener('click', ()=>clearAll(true));
       document.getElementById('exportBtn').addEventListener('click', exportJSON);
       document.getElementById('importBtn').addEventListener('click', ()=>document.getElementById('fileInput').click());
-
       document.getElementById('fileInput').addEventListener('change', (ev)=>{
         const f = ev.target.files[0];
         if(f) importJSON(f);
@@ -272,12 +251,9 @@
       });
     }
 
-    // Инициализация
     createTableRows();
     attachEvents();
-    // Попробуем загрузить из localStorage автоматически
     if(!loadFromLocal()){
-      // если нет сохранения, просто показываем пустую таблицу и пустые итоги
       updateAllResults();
     }
   </script>
